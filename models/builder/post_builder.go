@@ -1,18 +1,26 @@
 package builder
 
-import "github.com/wincentrtz/fake-news/models"
+import (
+	"time"
+
+	"github.com/wincentrtz/fake-news/models"
+)
 
 type postBuilder struct {
 	id          int
+	parent      int
 	title       string
 	description string
+	date        time.Time
 }
 
 // PostBuilder builder interface
 type PostBuilder interface {
 	Id(int) PostBuilder
+	Parent(int) PostBuilder
 	Title(string) PostBuilder
 	Description(string) PostBuilder
+	Date(time.Time) PostBuilder
 	Build() *models.Post
 }
 
@@ -26,6 +34,11 @@ func (ub *postBuilder) Id(id int) PostBuilder {
 	return ub
 }
 
+func (ub *postBuilder) Parent(parent int) PostBuilder {
+	ub.parent = parent
+	return ub
+}
+
 func (ub *postBuilder) Title(title string) PostBuilder {
 	ub.title = title
 	return ub
@@ -36,9 +49,15 @@ func (ub *postBuilder) Description(description string) PostBuilder {
 	return ub
 }
 
+func (ub *postBuilder) Date(date time.Time) PostBuilder {
+	ub.date = date
+	return ub
+}
+
 func (ub *postBuilder) Build() *models.Post {
 	return &models.Post{
 		Id:          ub.id,
+		Parent:      ub.parent,
 		Title:       ub.title,
 		Description: ub.description,
 	}

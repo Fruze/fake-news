@@ -1,19 +1,22 @@
 package main
 
 import (
+	"database/sql"
+	"fmt"
 	"net/http"
 	"time"
 
 	"github.com/gorilla/mux"
 	"github.com/spf13/viper"
 	"github.com/wincentrtz/fake-news/config"
-	handler "github.com/wincentrtz/fake-news/domain/post/handler/rest"
-	_repository "github.com/wincentrtz/fake-news/domain/post/repository"
-	_usecase "github.com/wincentrtz/fake-news/domain/post/usecase"
 
-	postQueueHandler "github.com/wincentrtz/fake-news/domain/postqueue/handler/rest"
-	_postQueueRepository "github.com/wincentrtz/fake-news/domain/postqueue/repository"
-	_postQueueUsecase "github.com/wincentrtz/fake-news/domain/postqueue/usecase"
+	postHandler "github.com/wincentrtz/fake-news/domain/post/handler/rest"
+	_postRepository "github.com/wincentrtz/fake-news/domain/post/repository"
+	_postUsecase "github.com/wincentrtz/fake-news/domain/post/usecase"
+
+	postStatusHandler "github.com/wincentrtz/fake-news/domain/poststatus/handler/rest"
+	_postStatusRepository "github.com/wincentrtz/fake-news/domain/poststatus/repository"
+	_postStatusUsecase "github.com/wincentrtz/fake-news/domain/poststatus/usecase"
 )
 
 func main() {
@@ -22,16 +25,22 @@ func main() {
 	r := mux.NewRouter()
 	timeoutContext := time.Duration(viper.GetInt("context.timeout")) * time.Second
 
-	pr := _repository.NewPostRepository(db)
-	pu := _usecase.NewPostUsecase(pr, timeoutContext)
+	registerPostHandler(r, timeoutContext, db)
+	registerStatusHandler(r, timeoutContext, db)
 
-	pqr := _postQueueRepository.NewPostQueueRepository(db)
-	pqu := _postQueueUsecase.NewPostQueueUsecase(pqr, timeoutContext)
-
-	handler.NewPostHandler(r, pu)
-	postQueueHandler.NewPostQueueHandler(r, pqu)
-
+	fmt.Println("Starting..")
 	http.Handle("/", r)
 	http.ListenAndServe(":8080", nil)
+}
 
+func registerPostHandler(r *mux.Router, timeoutContext time.Duration, db *sql.DB) {
+	pr := _postRepository.NewPostRepository(db)
+	pu := _postUsecase.NewPostUsecase(pr, timeoutContext)
+	postHandler.NewPostHandler(r, pu)
+}
+
+func registerStatusHandler(r *mux.Router, timeoutContext time.Duration, db *sql.DB) {
+	pqr := _postStatusRepository.NewPostStatusRepository(db)
+	pqu := _postStatusUsecase.NewPostStatusUsecase(pqr, timeoutContext)
+	postStatusHandler.NewPostStatusHandler(r, pqu)
 }

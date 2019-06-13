@@ -2,9 +2,10 @@ package post
 
 import (
 	"github.com/wincentrtz/fake-news/models"
+	"github.com/wincentrtz/fake-news/models/request"
 )
 
-// Usecase represent the article's usecases
 type Usecase interface {
-	Fetch() ([]*models.Post, error)
+	FetchPost() ([]*models.Post, error)
+	CreatePost(pr request.PostRequest) (*models.Post, error)
 }
